@@ -5,34 +5,58 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type order struct {
+	Id          uuid.UUID `json:"id"`
 	Items       []item    `json:"items"`
 	CreatedDate time.Time `json:"createdDate"`
 }
 
 type item struct {
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
+	Id          uuid.UUID `json:"id"`
+	Description string    `json:"description"`
+	Price       float64   `json:"price"`
 }
 
 func (app *application) getOrdersHandler(c *gin.Context) {
 	orders := []order{
 		{
+			Id: uuid.New(),
 			Items: []item{
 				{
+					Id:          uuid.New(),
 					Description: "yo this is a description",
 					Price:       1.50,
 				},
 				{
+					Id:          uuid.New(),
 					Description: "this is another description",
 					Price:       3.00,
 				},
 			},
 			CreatedDate: time.Now(),
 		},
+		{
+			Id: uuid.New(),
+			Items: []item{
+				{
+					Id:          uuid.New(),
+					Description: "yo this is a description 2",
+					Price:       2.50,
+				},
+				{
+					Id:          uuid.New(),
+					Description: "this is another description 2",
+					Price:       5.00,
+				},
+			},
+			CreatedDate: time.Now(),
+		},
 	}
 
-	c.JSON(http.StatusOK, orders)
+	time.Sleep(time.Second * 2)
+
+	c.JSON(http.StatusOK, gin.H{"orders": orders})
 }
