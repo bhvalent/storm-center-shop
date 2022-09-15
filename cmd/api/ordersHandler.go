@@ -15,9 +15,9 @@ type order struct {
 }
 
 type item struct {
-	Id          uuid.UUID `json:"id"`
-	Description string    `json:"description"`
-	Price       float64   `json:"price"`
+	Id    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Price float64   `json:"price"`
 }
 
 func (app *application) getOrdersHandler(c *gin.Context) {
@@ -26,14 +26,14 @@ func (app *application) getOrdersHandler(c *gin.Context) {
 			Id: uuid.New(),
 			Items: []item{
 				{
-					Id:          uuid.New(),
-					Description: "yo this is a description",
-					Price:       1.50,
+					Id:    uuid.New(),
+					Name:  "Fit Aid - Citrus Medley",
+					Price: 2.50,
 				},
 				{
-					Id:          uuid.New(),
-					Description: "this is another description",
-					Price:       3.00,
+					Id:    uuid.New(),
+					Name:  "Fit Aid - Citrus Medley",
+					Price: 2.50,
 				},
 			},
 			CreatedDate: time.Now(),
@@ -42,14 +42,14 @@ func (app *application) getOrdersHandler(c *gin.Context) {
 			Id: uuid.New(),
 			Items: []item{
 				{
-					Id:          uuid.New(),
-					Description: "yo this is a description 2",
-					Price:       2.50,
+					Id:    uuid.New(),
+					Name:  "NOCCO - Lemon Del Sol",
+					Price: 1.99,
 				},
 				{
-					Id:          uuid.New(),
-					Description: "this is another description 2",
-					Price:       5.00,
+					Id:    uuid.New(),
+					Name:  "Bolt24 - Antioxidant",
+					Price: 1.50,
 				},
 			},
 			CreatedDate: time.Now(),
