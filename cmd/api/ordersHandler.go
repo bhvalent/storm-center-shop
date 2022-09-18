@@ -20,43 +20,58 @@ type item struct {
 	Price float64   `json:"price"`
 }
 
-func (app *application) getOrdersHandler(c *gin.Context) {
-	orders := []order{
-		{
-			Id: uuid.New(),
-			Items: []item{
-				{
-					Id:    uuid.New(),
-					Name:  "Fit Aid - Citrus Medley",
-					Price: 2.50,
-				},
-				{
-					Id:    uuid.New(),
-					Name:  "Fit Aid - Citrus Medley",
-					Price: 2.50,
-				},
+var orders = []order{
+	{
+		Id: uuid.New(),
+		Items: []item{
+			{
+				Id:    uuid.New(),
+				Name:  "Fit Aid - Citrus Medley",
+				Price: 2.50,
 			},
-			CreatedDate: time.Now(),
-		},
-		{
-			Id: uuid.New(),
-			Items: []item{
-				{
-					Id:    uuid.New(),
-					Name:  "NOCCO - Lemon Del Sol",
-					Price: 1.99,
-				},
-				{
-					Id:    uuid.New(),
-					Name:  "Bolt24 - Antioxidant",
-					Price: 1.50,
-				},
+			{
+				Id:    uuid.New(),
+				Name:  "Fit Aid - Citrus Medley",
+				Price: 2.50,
 			},
-			CreatedDate: time.Now(),
 		},
-	}
+		CreatedDate: time.Now(),
+	},
+	{
+		Id: uuid.New(),
+		Items: []item{
+			{
+				Id:    uuid.New(),
+				Name:  "NOCCO - Lemon Del Sol",
+				Price: 1.99,
+			},
+			{
+				Id:    uuid.New(),
+				Name:  "Bolt24 - Antioxidant",
+				Price: 1.50,
+			},
+		},
+		CreatedDate: time.Now(),
+	},
+}
 
+func (app *application) getOrdersHandler(c *gin.Context) {
 	time.Sleep(time.Second * 2)
 
 	c.JSON(http.StatusOK, gin.H{"orders": orders})
+}
+
+func (app *application) saveOrderHandler(c *gin.Context) {
+	time.Sleep(time.Second * 2)
+
+	var data order
+	var err error
+	if err = c.BindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	data.Id = uuid.New()
+	data.CreatedDate = time.Now()
+	orders = append(orders, data)
+	c.JSON(http.StatusCreated, data)
 }
