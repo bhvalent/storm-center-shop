@@ -64,14 +64,17 @@ func (app *application) getOrdersHandler(c *gin.Context) {
 func (app *application) saveOrderHandler(c *gin.Context) {
 	time.Sleep(time.Second * 2)
 
-	var data order
+	var data []item
 	var err error
 	if err = c.BindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	data.Id = uuid.New()
-	data.CreatedDate = time.Now()
-	orders = append(orders, data)
-	c.JSON(http.StatusCreated, data)
+	newOrder := order{
+		Id:          uuid.New(),
+		CreatedDate: time.Now(),
+		Items:       data,
+	}
+	orders = append(orders, newOrder)
+	c.JSON(http.StatusCreated, newOrder)
 }
