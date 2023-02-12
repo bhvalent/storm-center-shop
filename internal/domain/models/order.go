@@ -2,9 +2,8 @@ package models
 
 import (
 	"context"
-	"log"
-	"storm-center-backend/internal/data"
-	"storm-center-backend/pkg/api"
+	"storm-center-shop/internal/data"
+	"storm-center-shop/pkg/api"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,49 +24,27 @@ type Item struct {
 }
 
 func NewOrderFromCreateOrderRequest(cor api.CreateOrderRequest, or data.IOrderRepository) *Order {
-	order := CreateOrderRequestToOrder(cor)
+	order := createOrderRequestToOrder(cor)
 	order.repo = or
-	return &order
+	return order
 }
 
-func (o *Order) Create(c context.Context) (Order, error) {
+func (o *Order) Create(c context.Context) (*Order, error) {
 	oe := orderToEntity(*o)
 	newOrderEntity, err := o.repo.CreateOrder(c, oe)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	return OrderEntityToOrder(newOrderEntity), nil
 }
 
-func CreateOrderRequestToOrder(cor api.CreateOrderRequest) Order {
-	var items []Item
-	for _, requestItem := range cor.Items {
-		items = append(items, RequestItemToItem(requestItem))
-	}
-
-	return Order{
-		Id:          cor.Id,
-		UserId:      cor.UserId,
-		CreatedDate: cor.CreatedDate,
-		Items:       items,
-	}
-}
-
-func RequestItemToItem(ri api.RequestItem) Item {
-	return Item{
-		Id:    ri.Id,
-		Name:  ri.Name,
-		Price: ri.Price,
-	}
-}
-
-func OrderEntityToOrder(oe data.OrderEntity) Order {
+func OrderEntityToOrder(oe *data.OrderEntity) *Order {
 	var items []Item
 	for _, itemEntity := range oe.Items {
-		items = append(items, ItemEntityToItem(itemEntity))
+		items = append(items, itemEntityToItem(itemEntity))
 	}
 
-	return Order{
+	return &Order{
 		Id:          oe.Id,
 		UserId:      oe.UserId,
 		CreatedDate: oe.CreatedDate,
@@ -75,11 +52,33 @@ func OrderEntityToOrder(oe data.OrderEntity) Order {
 	}
 }
 
-func ItemEntityToItem(ie data.ItemEntity) Item {
+func itemEntityToItem(ie data.ItemEntity) Item {
 	return Item{
 		Id:    ie.Id,
 		Name:  ie.Name,
 		Price: ie.Price,
+	}
+}
+
+func createOrderRequestToOrder(cor api.CreateOrderRequest) *Order {
+	var items []Item
+	for _, requestItem := range cor.Items {
+		items = append(items, requestItemToItem(requestItem))
+	}
+
+	return &Order{
+		Id:          cor.Id,
+		UserId:      cor.UserId,
+		CreatedDate: cor.CreatedDate,
+		Items:       items,
+	}
+}
+
+func requestItemToItem(ri api.RequestItem) Item {
+	return Item{
+		Id:    ri.Id,
+		Name:  ri.Name,
+		Price: ri.Price,
 	}
 }
 

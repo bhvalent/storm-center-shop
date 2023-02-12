@@ -1,6 +1,6 @@
 package controllers
 
-import "storm-center-backend/internal/domain/models"
+import "storm-center-shop/internal/domain/models"
 
 type BaseController struct {
 	app *models.Application

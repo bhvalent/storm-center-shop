@@ -3,7 +3,7 @@ package data
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
@@ -15,53 +15,64 @@ type OrderRepository struct {
 }
 
 type IOrderRepository interface {
-	GetOrders(c context.Context, userId string) []OrderEntity
-	CreateOrder(c context.Context, o OrderEntity) (OrderEntity, error)
+	GetOrders(c context.Context, userId string) ([]*OrderEntity, error)
+	CreateOrder(c context.Context, o OrderEntity) (*OrderEntity, error)
 }
 
 func NewOrderRepository(db *Cosmos) *OrderRepository {
 	return &OrderRepository{db: *db}
 }
 
-func (or *OrderRepository) GetOrders(c context.Context, userId string) []OrderEntity {
-	client := or.db.GetClient()
+func (or *OrderRepository) GetOrders(c context.Context, userId string) ([]*OrderEntity, error) {
+	client, err := or.db.GetClient()
+	if err != nil {
+		return nil, fmt.Errorf("error in OrderRepository.GetOrders: %w", err)
+	}
 
 	orderContainer, err := client.NewContainer("stormcenter", "orders")
 	if err != nil {
-		log.Fatal("Failed get orders container: ", err)
+		return nil, fmt.Errorf("error while getting orders container in OrderRepository.GetOrders: %w", err)
 	}
 
-	var orderEntities []OrderEntity
+	var orderEntities []*OrderEntity
 
 	pk := azcosmos.NewPartitionKeyString(userId)
 	queryPager := orderContainer.NewQueryItemsPager("select * from orders", pk, nil)
 	for queryPager.More() {
 		queryResponse, err := queryPager.NextPage(c)
 		if err != nil {
-			log.Fatal("Error getting next page while getting orders: ", err)
+			return nil, fmt.Errorf("error while querying orders in OrderRepository.GetOrders: %w", err)
 		}
 
 		for _, item := range queryResponse.Items {
 			var order OrderEntity
 			json.Unmarshal(item, &order)
-			orderEntities = append(orderEntities, order)
+			orderEntities = append(orderEntities, &order)
 		}
 	}
-	return orderEntities
+	return orderEntities, nil
 }
 
-func (or *OrderRepository) CreateOrder(c context.Context, o OrderEntity) (OrderEntity, error) {
-	client := or.db.GetClient()
+func (or *OrderRepository) CreateOrder(c context.Context, o OrderEntity) (*OrderEntity, error) {
+	client, err := or.db.GetClient()
+	if err != nil {
+		return nil, fmt.Errorf("error while creating order in OrderRepository.CreateOrder: %w", err)
+	}
 
 	orderContainer, err := client.NewContainer("stormcenter", "orders")
 	if err != nil {
-		log.Fatal("Failed get orders container: ", err)
+		return nil, fmt.Errorf("error while creating order in OrderRepository.CreateOrder: %w", err)
 	}
 
 	pk := azcosmos.NewPartitionKeyString(o.UserId.String())
+
 	o.CreatedDate = time.Now()
 	o.Id = uuid.New()
-	data, _ := json.Marshal(o)
+
+	data, err := json.Marshal(o)
+	if err != nil {
+		return nil, fmt.Errorf("error while creating order in OrderRepository.CreateOrder: %w", err)
+	}
 
 	itemOptions := azcosmos.ItemOptions{
 		ConsistencyLevel:             azcosmos.ConsistencyLevelSession.ToPtr(),
@@ -70,14 +81,16 @@ func (or *OrderRepository) CreateOrder(c context.Context, o OrderEntity) (OrderE
 
 	response, err := orderContainer.CreateItem(c, pk, data, &itemOptions)
 	if err != nil {
-		log.Print(err)
-		return OrderEntity{}, err
+		return nil, fmt.Errorf("error while creating order in OrderRepository.CreateOrder: %w", err)
 	}
 
 	var newOrder OrderEntity
-	json.Unmarshal(response.Value, &newOrder)
+	err = json.Unmarshal(response.Value, &newOrder)
+	if err != nil {
+		return nil, fmt.Errorf("error while creating order in OrderRepository.CreateOrder: %w", err)
+	}
 
-	return newOrder, nil
+	return &newOrder, nil
 }
 
 type OrderEntity struct {

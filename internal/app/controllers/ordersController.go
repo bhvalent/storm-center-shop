@@ -2,10 +2,10 @@ package controllers
 
 import (
 	"net/http"
-	"storm-center-backend/internal/data"
-	"storm-center-backend/internal/domain/models"
-	"storm-center-backend/internal/domain/services"
-	"storm-center-backend/pkg/api"
+	"storm-center-shop/internal/data"
+	"storm-center-shop/internal/domain/models"
+	"storm-center-shop/internal/domain/services"
+	"storm-center-shop/pkg/api"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +16,12 @@ func (bc *BaseController) GetOrdersHandler(c *gin.Context) {
 	os := services.NewOrderService(or)
 
 	userId := c.Param("id")
-	orders := os.GetOrders(c, userId)
+	orders, err := os.GetOrders(c, userId)
+	if err != nil {
+		bc.app.Logger.Print(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong!"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"orders": orders})
 }
 
@@ -24,7 +29,7 @@ func (bc *BaseController) CreateOrderHandler(c *gin.Context) {
 	var cor api.CreateOrderRequest
 	var err error
 	if err = c.BindJSON(&cor); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": c.Request.Body})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -37,7 +42,7 @@ func (bc *BaseController) CreateOrderHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, err)
 	}
 
-	response := orderToCreateOrderResponse(order)
+	response := orderToCreateOrderResponse(*order)
 	c.JSON(http.StatusCreated, response)
 }
 

@@ -1,7 +1,7 @@
 package data
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/data/azcosmos"
 )
@@ -15,17 +15,17 @@ func NewCosmos(key string, url string) *Cosmos {
 	return &Cosmos{key: key, url: url}
 }
 
-func (c *Cosmos) GetClient() *azcosmos.Client {
+func (c *Cosmos) GetClient() (*azcosmos.Client, error) {
 	cred, err := azcosmos.NewKeyCredential(c.key)
 	if err != nil {
-		log.Fatal("Failed to create a credential: ", err)
+		return nil, fmt.Errorf("failed to create Azure Cosmos credential")
 	}
 
 	// Create a CosmosDB client
 	client, err := azcosmos.NewClientWithKey(c.url, cred, nil)
 	if err != nil {
-		log.Fatal("Failed to create Azure Cosmos DB client: ", err)
+		return nil, fmt.Errorf("failed to create Azure Cosmos client")
 	}
 
-	return client
+	return client, nil
 }

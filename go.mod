@@ -1,4 +1,4 @@
-module storm-center-backend
+module storm-center-shop
 
 go 1.18
 

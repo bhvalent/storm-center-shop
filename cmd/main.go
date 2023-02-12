@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"storm-center-backend/internal/app/routes"
-	"storm-center-backend/internal/domain/models"
+	"storm-center-shop/internal/app/routes"
+	"storm-center-shop/internal/domain/models"
 
 	"github.com/caarlos0/env"
 	"github.com/joho/godotenv"
